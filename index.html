@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>保全技能検定 過去問アプリ</title>
+<style>
+  :root {
+    --navy: #0f1923;
+    --navy-mid: #1a2840;
+    --navy-light: #243552;
+    --navy-card: #1e2e45;
+    --orange: #f07030;
+    --orange-dim: #c05820;
+    --orange-glow: rgba(240,112,48,0.18);
+    --steel: #8aa0be;
+    --steel-light: #b8cce4;
+    --white: #f0f4fa;
+    --green: #3ab87a;
+    --red: #e05050;
+    --yellow: #e8b840;
+    --border: rgba(138,160,190,0.2);
+    --font-head: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: var(--font-head);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: var(--navy-mid);
+    border-bottom: 2px solid var(--orange);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-header .logo {
+    width: 36px; height: 36px;
+    background: var(--orange);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; color: var(--navy);
+    flex-shrink: 0;
+  }
+  .app-header .title-block { flex: 1; }
+  .app-header h1 { font-size: 14px; font-weight: 700; color: var(--white); line-height: 1.2; }
+  .app-header .subtitle { font-size: 10px; color: var(--steel); }
+  .header-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--steel-light); border-radius: 6px;
+    padding: 6px 10px; font-size: 12px; cursor: pointer;
+    white-space: nowrap;
+  }
+  .header-btn:active { background: var(--navy-light); }
+
+  /* ===== NAV TABS ===== */
+  .nav-tabs {
+    display: flex;
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    flex: 1; min-width: 70px;
+    padding: 10px 4px;
+    text-align: center;
+    font-size: 11px; color: var(--steel);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-tab.active {
+    color: var(--orange);
+    border-bottom-color: var(--orange);
+    font-weight: 700;
+  }
+  .nav-tab .tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; padding: 16px; }
+  .screen.active { display: block; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--navy-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 12px; font-weight: 700;
+    color: var(--orange); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: block; width: 100%;
+    padding: 14px; border-radius: 10px;
+    font-size: 15px; font-weight: 700;
+    border: none; cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .btn-primary { background: var(--orange); color: var(--navy); }
+  .btn-primary:active { background: var(--orange-dim); transform: scale(0.98); }
+  .btn-secondary {
+    background: var(--navy-light);
+    color: var(--white);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:active { background: var(--navy-mid); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-sm {
+    padding: 8px 14px; font-size: 13px;
+    border-radius: 7px; display: inline-block; width: auto;
+  }
+
+  /* ===== SELECT ===== */
+  .select-group { margin-bottom: 12px; }
+  .select-label { font-size: 12px; color: var(--steel); margin-bottom: 6px; display: block; }
+  select, .fake-select {
+    width: 100%; padding: 10px 12px;
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--white);
+    font-size: 14px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238aa0be' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+
+  /* ===== CHIP SELECTOR ===== */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chip {
+    padding: 7px 14px; border-radius: 20px;
+    font-size: 13px; cursor: pointer;
+    border: 1px solid var(--border);
+    color: var(--steel-light);
+    background: var(--navy-mid);
+    transition: all 0.15s;
+  }
+  .chip.selected {
+    background: var(--orange-glow);
+    border-color: var(--orange);
+    color: var(--orange);
+    font-weight: 700;
+  }
+
+  /* ===== HOME SCREEN ===== */
+  .stat-row {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 8px; margin-bottom: 16px;
+  }
+  .stat-box {
+    background: var(--navy-light);
+    border-radius: 10px; padding: 12px 8px;
+    text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 900; color: var(--orange); }
+  .stat-label { font-size: 10px; color: var(--steel); margin-top: 2px; }
+
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mode-card {
+    background: var(--navy-light);
+    border-radius: 12px; padding: 16px 12px;
+    text-align: center; cursor: pointer;
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+  }
+  .mode-card:active { background: var(--navy-mid); border-color: var(--orange); }
+  .mode-card .mode-icon { font-size: 28px; margin-bottom: 6px; }
+  .mode-card .mode-name { font-size: 13px; font-weight: 700; color: var(--white); }
+  .mode-card .mode-desc { font-size: 10px; color: var(--steel); margin-top: 3px; }
+
+  /* ===== QUIZ SCREEN ===== */
+  .quiz-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .quiz-meta { font-size: 12px; color: var(--steel); }
+  .progress-bar-wrap {
+    background: var(--navy-light); border-radius: 4px;
+    height: 6px; margin-bottom: 16px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--orange);
+    border-radius: 4px; transition: width 0.4s ease;
+  }
+
+  .question-card {
+    background: var(--navy-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 16px;
+    margin-bottom: 14px;
+    min-height: 120px;
+  }
+  .question-num {
+    font-size: 11px; color: var(--orange);
+    font-weight: 700; margin-bottom: 8px;
+  }
+  .question-text {
+    font-size: 15px; line-height: 1.7;
+    color: var(--white);
+  }
+  .question-image {
+    width: 100%; border-radius: 8px;
+    margin-top: 12px; max-height: 200px; object-fit: contain;
+  }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn {
+    background: var(--navy-card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px; color: var(--white);
+    text-align: left; cursor: pointer;
+    display: flex; align-items: flex-start; gap: 10px;
+    transition: all 0.15s;
+    line-height: 1.5;
+  }
+  .choice-btn:active { background: var(--navy-light); }
+  .choice-btn.selected { border-color: var(--orange); background: var(--orange-glow); }
+  .choice-btn.correct { border-color: var(--green); background: rgba(58,184,122,0.15); }
+  .choice-btn.wrong { border-color: var(--red); background: rgba(224,80,80,0.15); }
+  .choice-label {
+    font-weight: 700; color: var(--orange);
+    min-width: 20px; padding-top: 1px;
+  }
+  .choice-btn.correct .choice-label { color: var(--green); }
+  .choice-btn.wrong .choice-label { color: var(--red); }
+
+  .answer-feedback {
+    display: none;
+    background: var(--navy-card);
+    border-radius: 12px; padding: 14px 16px;
+    margin-top: 12px; border-left: 4px solid var(--green);
+  }
+  .answer-feedback.wrong { border-color: var(--red); }
+  .answer-feedback .feedback-title {
+    font-size: 13px; font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .answer-feedback.correct-ans .feedback-title { color: var(--green); }
+  .answer-feedback.wrong .feedback-title { color: var(--red); }
+  .answer-feedback .feedback-body { font-size: 13px; color: var(--steel-light); line-height: 1.6; }
+
+  .next-btn-wrap { margin-top: 16px; }
+
+  /* ===== RESULT SCREEN ===== */
+  .result-circle {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    border: 6px solid var(--orange);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .result-pct { font-size: 30px; font-weight: 900; color: var(--orange); }
+  .result-label { font-size: 11px; color: var(--steel); }
+
+  /* ===== STATS SCREEN ===== */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stats-box {
+    background: var(--navy-card);
+    border-radius: 10px; padding: 14px 12px;
+    border: 1px solid var(--border);
+  }
+  .stats-box .s-num { font-size: 24px; font-weight: 900; color: var(--orange); }
+  .stats-box .s-label { font-size: 11px; color: var(--steel); margin-top: 2px; }
+
+  .bar-chart { margin-top: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .bar-row-label { font-size: 11px; color: var(--steel-light); width: 90px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; background: var(--navy-light); border-radius: 3px; height: 10px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--orange); border-radius: 3px; transition: width 0.5s ease; }
+  .bar-pct { font-size: 11px; color: var(--steel); width: 32px; text-align: right; flex-shrink: 0; }
+
+  /* ===== IMPORT SCREEN ===== */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 14px; padding: 32px 20px;
+    text-align: center; cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+  .upload-zone:active, .upload-zone.drag-over {
+    border-color: var(--orange);
+    background: var(--orange-glow);
+  }
+  .upload-icon { font-size: 40px; margin-bottom: 10px; }
+  .upload-title { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+  .upload-sub { font-size: 12px; color: var(--steel); }
+  input[type=file] { display: none; }
+
+  .processing-box {
+    display: none;
+    background: var(--navy-card);
+    border-radius: 12px; padding: 20px;
+    text-align: center; margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--orange);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .extracted-preview {
+    display: none;
+    background: var(--navy-card);
+    border-radius: 12px; padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid var(--green);
+  }
+  .preview-title { font-size: 13px; font-weight: 700; color: var(--green); margin-bottom: 10px; }
+  .preview-q {
+    background: var(--navy-light);
+    border-radius: 8px; padding: 10px 12px;
+    font-size: 12px; color: var(--steel-light);
+    margin-bottom: 6px; line-height: 1.5;
+  }
+
+  .db-list { }
+  .db-item {
+    background: var(--navy-card);
+    border-radius: 10px; padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid var(--border);
+  }
+  .db-info .db-name { font-size: 13px; font-weight: 700; color: var(--white); }
+  .db-info .db-meta { font-size: 11px; color: var(--steel); margin-top: 2px; }
+  .db-del { background: none; border: none; color: var(--red); font-size: 18px; cursor: pointer; padding: 4px 8px; }
+
+  /* ===== API KEY ===== */
+  .api-input-wrap { position: relative; }
+  .api-input-wrap input {
+    width: 100%; padding: 10px 40px 10px 12px;
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--white); font-size: 13px;
+    font-family: monospace;
+  }
+  .api-input-wrap input:focus { outline: none; border-color: var(--orange); }
+  .eye-btn {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--steel);
+    cursor: pointer; font-size: 16px; padding: 4px;
+  }
+  .api-status { font-size: 11px; margin-top: 6px; }
+  .api-status.ok { color: var(--green); }
+  .api-status.ng { color: var(--red); }
+
+  .tag-chip {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 10px; font-size: 10px; font-weight: 700;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .tag-mech { background: rgba(240,112,48,0.2); color: var(--orange); }
+  .tag-elec { background: rgba(58,184,122,0.2); color: var(--green); }
+  .tag-diag { background: rgba(232,184,64,0.2); color: var(--yellow); }
+
+  /* ===== SESSION SELECT ===== */
+  .session-select-wrap { }
+  .session-item {
+    background: var(--navy-card);
+    border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .session-item:active { border-color: var(--orange); background: var(--orange-glow); }
+  .session-item .s-left .s-name { font-size: 14px; font-weight: 700; color: var(--white); }
+  .session-item .s-left .s-count { font-size: 11px; color: var(--steel); margin-top: 3px; }
+  .session-item .s-right { color: var(--steel); font-size: 18px; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--steel); }
+  .empty-state .e-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state .e-text { font-size: 14px; margin-bottom: 16px; }
+
+  .review-badge {
+    background: var(--red); color: white;
+    border-radius: 10px; padding: 1px 7px;
+    font-size: 11px; font-weight: 700;
+    margin-left: 8px;
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--navy-light); color: var(--white);
+    padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s; z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,25,35,0.85);
+    z-index: 200; display: none;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-sheet {
+    background: var(--navy-mid);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 16px 32px;
+    width: 100%; max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px; margin: 0 auto 16px;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+  /* ===== MISC ===== */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .text-muted { color: var(--steel); font-size: 12px; }
+  .text-sm { font-size: 12px; }
+  .mt8 { margin-top: 8px; }
+  .mt12 { margin-top: 12px; }
+  .flex-row { display: flex; gap: 8px; }
+  .flex-row .btn { flex: 1; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="logo">保</div>
+  <div class="title-block">
+    <h1>保全技能検定 過去問</h1>
+    <div class="subtitle">機械系 / 電気系 / 設備診断</div>
+  </div>
+  <button class="header-btn" onclick="showScreen('settings-screen')">⚙️</button>
+</div>
+
+<!-- NAV -->
+<div class="nav-tabs">
+  <div class="nav-tab active" data-screen="home-screen" onclick="switchTab(this,'home-screen')">
+    <span class="tab-icon">🏠</span>ホーム
+  </div>
+  <div class="nav-tab" data-screen="quiz-select-screen" onclick="switchTab(this,'quiz-select-screen')">
+    <span class="tab-icon">📝</span>問題
+  </div>
+  <div class="nav-tab" data-screen="stats-screen" onclick="switchTab(this,'stats-screen')">
+    <span class="tab-icon">📊</span>統計
+  </div>
+  <div class="nav-tab" data-screen="import-screen" onclick="switchTab(this,'import-screen')">
+    <span class="tab-icon">📥</span>取込
+  </div>
+</div>
+
+<!-- ============ HOME ============ -->
+<div id="home-screen" class="screen active">
+  <div class="stat-row" id="home-stats">
+    <div class="stat-box">
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-label">総問題数</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="stat-answered">0</div>
+      <div class="stat-label">回答済み</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="stat-correct-rate">—</div>
+      <div class="stat-label">正答率</div>
+    </div>
+  </div>
+
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startMode('select')">
+      <div class="mode-icon">📂</div>
+      <div class="mode-name">年度別出題</div>
+      <div class="mode-desc">年度・区分を選んで解く</div>
+    </div>
+    <div class="mode-card" onclick="startMode('random')">
+      <div class="mode-icon">🎲</div>
+      <div class="mode-name">ランダム</div>
+      <div class="mode-desc">全問からランダム10問</div>
+    </div>
+    <div class="mode-card" onclick="startMode('review')">
+      <div class="mode-icon">🔁</div>
+      <div class="mode-name">復習モード<span class="review-badge" id="review-count-badge" style="display:none">0</span></div>
+      <div class="mode-desc">間違い問題を重点復習</div>
+    </div>
+    <div class="mode-card" onclick="startMode('weak')">
+      <div class="mode-icon">🎯</div>
+      <div class="mode-name">苦手集中</div>
+      <div class="mode-desc">正答率の低い問題から</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="card">
+    <div class="card-title">📚 登録済みデータ</div>
+    <div id="home-db-list">
+      <div class="empty-state" style="padding:20px 0">
+        <div class="e-icon">📂</div>
+        <div class="e-text" style="font-size:13px">まだ問題データがありません<br>「取込」からPDFを読み取ってください</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ QUIZ SELECT ============ -->
+<div id="quiz-select-screen" class="screen">
+  <div class="card">
+    <div class="card-title">🗂 出題セット選択</div>
+
+    <div class="select-group">
+      <span class="select-label">作業区分</span>
+      <div class="chip-group" id="category-chips">
+        <div class="chip selected" data-val="all" onclick="selectChip(this,'category')">すべて</div>
+        <div class="chip" data-val="機械系" onclick="selectChip(this,'category')"><span class="tag-chip tag-mech">●</span> 機械系</div>
+        <div class="chip" data-val="電気系" onclick="selectChip(this,'category')"><span class="tag-chip tag-elec">●</span> 電気系</div>
+        <div class="chip" data-val="設備診断" onclick="selectChip(this,'category')"><span class="tag-chip tag-diag">●</span> 設備診断</div>
+      </div>
+    </div>
+
+    <div class="select-group">
+      <span class="select-label">年度</span>
+      <div class="chip-group" id="year-chips">
+        <div class="chip selected" data-val="all" onclick="selectChip(this,'year')">すべて</div>
+      </div>
+    </div>
+
+    <div class="select-group">
+      <span class="select-label">出題数</span>
+      <div class="chip-group">
+        <div class="chip selected" data-val="10" onclick="selectCountChip(this)">10問</div>
+        <div class="chip" data-val="20" onclick="selectCountChip(this)">20問</div>
+        <div class="chip" data-val="30" onclick="selectCountChip(this)">30問</div>
+        <div class="chip" data-val="all" onclick="selectCountChip(this)">全問</div>
+      </div>
+    </div>
+
+    <div class="mt12">
+      <div class="text-muted" id="filtered-count">対象：0問</div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="startQuizFromSelect()">この条件で開始 →</button>
+</div>
+
+<!-- ============ QUIZ SCREEN ============ -->
+<div id="quiz-screen" class="screen">
+  <div class="quiz-header">
+    <div class="quiz-meta" id="quiz-meta">問1 / 10</div>
+    <div class="quiz-meta" id="quiz-mode-label"></div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+
+  <div class="question-card">
+    <div class="question-num" id="q-num"></div>
+    <div class="question-text" id="q-text"></div>
+    <img id="q-img" class="question-image" style="display:none" src="" alt="">
+  </div>
+
+  <div class="choices" id="choices-container"></div>
+
+  <div class="answer-feedback" id="answer-feedback">
+    <div class="feedback-title" id="feedback-title"></div>
+    <div class="feedback-body" id="feedback-body"></div>
+  </div>
+
+  <div class="next-btn-wrap" id="next-btn-wrap" style="display:none">
+    <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()">次の問題 →</button>
+  </div>
+</div>
+
+<!-- ============ RESULT SCREEN ============ -->
+<div id="result-screen" class="screen">
+  <div style="text-align:center; padding: 20px 0;">
+    <div class="result-circle">
+      <div class="result-pct" id="res-pct">0%</div>
+      <div class="result-label">正答率</div>
+    </div>
+    <div style="font-size:24px;font-weight:900;margin-bottom:4px" id="res-score"></div>
+    <div class="text-muted" id="res-mode"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 結果詳細</div>
+    <div id="result-detail"></div>
+  </div>
+
+  <div class="flex-row mt12">
+    <button class="btn btn-secondary" onclick="goHome()">ホームへ</button>
+    <button class="btn btn-primary" onclick="retryMistakes()">間違い復習</button>
+  </div>
+</div>
+
+<!-- ============ STATS ============ -->
+<div id="stats-screen" class="screen">
+  <div class="stats-grid">
+    <div class="stats-box">
+      <div class="s-num" id="st-total">0</div>
+      <div class="s-label">総回答数</div>
+    </div>
+    <div class="stats-box">
+      <div class="s-num" id="st-rate">—</div>
+      <div class="s-label">全体正答率</div>
+    </div>
+    <div class="stats-box">
+      <div class="s-num" id="st-streak">0</div>
+      <div class="s-label">連続正解</div>
+    </div>
+    <div class="stats-box">
+      <div class="s-num" id="st-wrong">0</div>
+      <div class="s-label">要復習</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 区分別正答率</div>
+    <div class="bar-chart" id="category-chart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📅 年度別正答率</div>
+    <div class="bar-chart" id="year-chart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">❌ 間違い多い問題 TOP5</div>
+    <div id="weak-list"></div>
+  </div>
+</div>
+
+<!-- ============ IMPORT ============ -->
+<div id="import-screen" class="screen">
+  <!-- API Key -->
+  <div class="card" id="api-key-card">
+    <div class="card-title">🔑 Anthropic API キー</div>
+    <div class="api-input-wrap">
+      <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
+      <button class="eye-btn" onclick="toggleApiKey()">👁</button>
+    </div>
+    <div class="api-status" id="api-status"></div>
+    <div class="text-muted mt8" style="font-size:11px">キーはブラウザのlocalStorageにのみ保存されます</div>
+    <button class="btn btn-secondary mt12" style="margin-top:12px" onclick="saveApiKey()">保存</button>
+  </div>
+
+  <!-- メタ情報入力 -->
+  <div class="card">
+    <div class="card-title">📋 問題情報</div>
+    <div class="select-group">
+      <span class="select-label">年度</span>
+      <select id="meta-year">
+        <option value="">選択してください</option>
+        <option>2024年度</option><option>2023年度</option>
+        <option>2022年度</option><option>2021年度</option>
+        <option>2020年度</option><option>2019年度</option>
+        <option>2018年度</option><option>2017年度</option>
+      </select>
+    </div>
+    <div class="select-group">
+      <span class="select-label">作業区分</span>
+      <select id="meta-category">
+        <option value="">選択してください</option>
+        <option>機械系保全作業</option>
+        <option>電気系保全作業</option>
+        <option>設備診断作業</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- PDF アップロード -->
+  <div class="card">
+    <div class="card-title">📄 PDF 読み取り</div>
+    <div class="upload-zone" id="pdf-zone" onclick="document.getElementById('pdf-input').click()"
+      ondragover="handleDrag(event)" ondrop="handleDrop(event,'pdf')">
+      <div class="upload-icon">📄</div>
+      <div class="upload-title">PDFをタップして選択</div>
+      <div class="upload-sub">または長押しでドラッグ＆ドロップ</div>
+    </div>
+    <input type="file" id="pdf-input" accept=".pdf" onchange="handlePdfFile(this)">
+  </div>
+
+  <!-- カメラ / 画像 -->
+  <div class="card">
+    <div class="card-title">📸 カメラ / 画像読み取り</div>
+    <div class="flex-row">
+      <div class="upload-zone" style="flex:1;margin-bottom:0;padding:20px 10px"
+        onclick="document.getElementById('camera-input').click()">
+        <div class="upload-icon">📷</div>
+        <div class="upload-title" style="font-size:14px">カメラ撮影</div>
+      </div>
+      <div class="upload-zone" style="flex:1;margin-bottom:0;padding:20px 10px"
+        onclick="document.getElementById('image-input').click()">
+        <div class="upload-icon">🖼️</div>
+        <div class="upload-title" style="font-size:14px">画像選択</div>
+      </div>
+    </div>
+    <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleImageFile(this)">
+    <input type="file" id="image-input" accept="image/*" multiple onchange="handleImageFile(this)">
+    <div class="text-muted mt8" style="font-size:11px">※ 複数ページは画像を複数選択してください</div>
+  </div>
+
+  <!-- Processing -->
+  <div class="processing-box" id="processing-box">
+    <div class="spinner"></div>
+    <div id="processing-msg" style="font-size:14px;color:var(--steel-light)">AIが問題を読み取り中...</div>
+    <div id="processing-sub" style="font-size:12px;color:var(--steel);margin-top:6px"></div>
+  </div>
+
+  <!-- Preview -->
+  <div class="extracted-preview" id="extracted-preview">
+    <div class="preview-title">✅ 読み取り完了 — プレビュー</div>
+    <div id="preview-content"></div>
+    <div class="flex-row mt12">
+      <button class="btn btn-secondary btn-sm" onclick="cancelExtracted()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveExtracted()">DBに保存 → </button>
+    </div>
+  </div>
+
+  <!-- JSON Import/Export -->
+  <div class="card">
+    <div class="card-title">💾 JSON インポート / エクスポート</div>
+    <div class="flex-row">
+      <button class="btn btn-secondary" onclick="document.getElementById('json-input').click()">
+        📂 ファイル選択
+      </button>
+      <button class="btn btn-primary" onclick="exportJSON()">
+        ⬇️ エクスポート
+      </button>
+    </div>
+    <input type="file" id="json-input" accept=".json" onchange="importJSON(this)">
+
+    <div class="divider"></div>
+
+    <!-- テキスト貼り付けインポート -->
+    <div class="card-title" style="margin-bottom:8px">📋 テキスト貼り付けインポート</div>
+    <div class="text-muted" style="font-size:11px;margin-bottom:8px">ClaudeチャットのJSONをコピーしてここに貼り付け</div>
+    <textarea id="json-paste-area"
+      style="width:100%;height:120px;background:var(--navy-mid);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:12px;font-family:monospace;padding:10px;resize:vertical;line-height:1.5"
+      placeholder='{"datasets":[...]} の形式で貼り付け'></textarea>
+    <button class="btn btn-primary mt8" onclick="importJSONFromText()">
+      ✅ 貼り付けてインポート
+    </button>
+  </div>
+
+  <!-- DB List -->
+  <div class="card">
+    <div class="card-title">🗄 登録済みデータセット</div>
+    <div id="import-db-list"></div>
+  </div>
+
+  <!-- 図付き問題編集 -->
+  <div class="card" id="fig-edit-section" style="display:none">
+    <div class="card-title">🖼 図付き問題にスクショを追加</div>
+    <div class="text-muted" style="font-size:11px;margin-bottom:12px">「（図参照）」と記載された問題にスクショを貼り付けできます</div>
+
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="fig-filter-chips">
+      <div class="chip selected" onclick="selectFigFilter(this,'all')">すべて</div>
+      <div class="chip" onclick="selectFigFilter(this,'figure')">⚠️ 図あり</div>
+      <div class="chip" onclick="selectFigFilter(this,'has-img')">🖼 追加済 <span id="fig-count-badge" style="background:rgba(58,184,122,.2);color:var(--green);border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:2px">0</span></div>
+      <div class="chip" onclick="selectFigFilter(this,'no-img')">📄 未追加</div>
+    </div>
+
+    <input type="text" id="fig-search" placeholder="🔍 問題文で絞り込み..."
+      style="width:100%;padding:9px 12px;background:var(--navy-mid);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:13px;margin-bottom:12px"
+      oninput="renderFigEditList()">
+
+    <div id="fig-edit-list" style="display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto"></div>
+  </div>
+
+  <input type="file" id="fig-file-input" accept="image/*" style="display:none">
+</div>
+
+<!-- ============ SETTINGS ============ -->
+<div id="settings-screen" class="screen">
+  <div class="card">
+    <div class="card-title">⚙️ 設定</div>
+    <button class="btn btn-secondary mt12" onclick="switchTab(document.querySelector('.nav-tab'),'home-screen')">← ホームへ戻る</button>
+    <div class="divider"></div>
+    <button class="btn btn-danger" onclick="confirmClearAll()">全データリセット</button>
+    <div class="text-muted mt8">問題データ・解答履歴をすべて削除します</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let DB = {
+  datasets: [],    // [{id, year, category, questions:[{id,text,choices:[],answer,image?,explanation?}]}]
+  history: {},     // {questionId: {correct:n, wrong:n, lastAnswered}}
+  settings: { apiKey: '' }
+};
+
+let quizState = {
+  questions: [],
+  current: 0,
+  answers: [],   // {qid, correct:bool}
+  mode: ''
+};
+
+let extractedData = null;
+let filterState = { category: 'all', year: 'all', count: 10 };
+
+// ===== INIT =====
+function init() {
+  loadDB();
+  loadApiKey();
+  renderHomePage();
+  renderImportDbList();
+  renderStats();
+  updateYearChips();
+  updateFilteredCount();
+}
+
+// ===== STORAGE =====
+function loadDB() {
+  const raw = localStorage.getItem('hoken_db');
+  if (raw) {
+    try { DB = { ...DB, ...JSON.parse(raw) }; } catch(e) {}
+  }
+}
+function saveDB() {
+  localStorage.setItem('hoken_db', JSON.stringify(DB));
+}
+function loadApiKey() {
+  const k = localStorage.getItem('hoken_apikey') || '';
+  DB.settings.apiKey = k;
+  document.getElementById('api-key-input').value = k;
+  if (k) document.getElementById('api-status').textContent = '✅ APIキー設定済み';
+}
+function saveApiKey() {
+  const k = document.getElementById('api-key-input').value.trim();
+  DB.settings.apiKey = k;
+  localStorage.setItem('hoken_apikey', k);
+  const el = document.getElementById('api-status');
+  if (k.startsWith('sk-')) {
+    el.textContent = '✅ 保存しました'; el.className = 'api-status ok';
+  } else {
+    el.textContent = '⚠️ キーの形式を確認してください'; el.className = 'api-status ng';
+  }
+  showToast('APIキーを保存しました');
+}
+function toggleApiKey() {
+  const inp = document.getElementById('api-key-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ===== NAVIGATION =====
+function switchTab(el, screenId) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  if (el && el.classList) el.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  if (screenId === 'stats-screen') renderStats();
+  if (screenId === 'import-screen') renderImportDbList();
+  if (screenId === 'quiz-select-screen') updateFilteredCount();
+  if (screenId === 'home-screen') renderHomePage();
+}
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+}
+
+// ===== HOME =====
+function renderHomePage() {
+  const all = getAllQuestions();
+  const answered = Object.keys(DB.history).length;
+  const correct = Object.values(DB.history).reduce((s,h)=>s+h.correct,0);
+  const total = Object.values(DB.history).reduce((s,h)=>s+h.correct+h.wrong,0);
+  document.getElementById('stat-total').textContent = all.length;
+  document.getElementById('stat-answered').textContent = answered;
+  document.getElementById('stat-correct-rate').textContent = total>0 ? Math.round(correct/total*100)+'%' : '—';
+
+  // review badge
+  const wrongCount = wrongQuestions().length;
+  const badge = document.getElementById('review-count-badge');
+  if (wrongCount > 0) { badge.textContent = wrongCount; badge.style.display='inline'; }
+  else { badge.style.display='none'; }
+
+  // DB list summary
+  const listEl = document.getElementById('home-db-list');
+  if (DB.datasets.length === 0) {
+    listEl.innerHTML = `<div class="empty-state" style="padding:20px 0"><div class="e-icon">📂</div><div class="e-text" style="font-size:13px">まだ問題データがありません<br>「取込」からPDFを読み取ってください</div></div>`;
+  } else {
+    listEl.innerHTML = DB.datasets.map(ds => `
+      <div class="db-item">
+        <div class="db-info">
+          <div class="db-name">${ds.year} ${ds.category}</div>
+          <div class="db-meta">${ds.questions.length}問</div>
+        </div>
+        <span class="${categoryTag(ds.category)}"></span>
+      </div>
+    `).join('');
+  }
+}
+
+function categoryTag(cat) {
+  if (cat.includes('機械')) return 'tag-chip tag-mech';
+  if (cat.includes('電気')) return 'tag-chip tag-elec';
+  return 'tag-chip tag-diag';
+}
+
+// ===== ALL QUESTIONS =====
+function getAllQuestions() {
+  return DB.datasets.flatMap(ds => ds.questions.map(q => ({...q, year: ds.year, category: ds.category})));
+}
+function wrongQuestions() {
+  return getAllQuestions().filter(q => {
+    const h = DB.history[q.id];
+    return h && h.wrong > 0;
+  });
+}
+
+// ===== MODE START =====
+function startMode(mode) {
+  if (getAllQuestions().length === 0) { showToast('問題データがありません。「取込」から追加してください'); return; }
+  if (mode === 'select') { switchTab(null, 'quiz-select-screen'); document.querySelector('[data-screen="quiz-select-screen"]').classList.add('active'); return; }
+
+  let qs = [];
+  if (mode === 'random') {
+    qs = shuffle(getAllQuestions()).slice(0, 10);
+  } else if (mode === 'review') {
+    qs = shuffle(wrongQuestions()).slice(0, 20);
+    if (qs.length === 0) { showToast('間違い問題がありません！'); return; }
+  } else if (mode === 'weak') {
+    qs = getAllQuestions()
+      .filter(q => DB.history[q.id])
+      .sort((a,b) => {
+        const ra = DB.history[a.id]; const rb = DB.history[b.id];
+        const pa = ra.correct/(ra.correct+ra.wrong); const pb = rb.correct/(rb.correct+rb.wrong);
+        return pa - pb;
+      }).slice(0, 20);
+    if (qs.length === 0) { showToast('まだ解答データがありません'); return; }
+  }
+
+  startQuiz(qs, mode);
+}
+
+function startQuizFromSelect() {
+  let qs = getAllQuestions();
+  if (filterState.category !== 'all') qs = qs.filter(q => q.category.includes(filterState.category));
+  if (filterState.year !== 'all') qs = qs.filter(q => q.year === filterState.year);
+  qs = shuffle(qs);
+  if (filterState.count !== 'all') qs = qs.slice(0, filterState.count);
+  if (qs.length === 0) { showToast('条件に合う問題がありません'); return; }
+  startQuiz(qs, 'select');
+}
+
+// ===== QUIZ ENGINE =====
+function startQuiz(questions, mode) {
+  quizState = { questions, current: 0, answers: [], mode };
+  showScreen('quiz-screen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = quizState.questions[quizState.current];
+  const total = quizState.questions.length;
+  const idx = quizState.current;
+
+  document.getElementById('quiz-meta').textContent = `問${idx+1} / ${total}`;
+  document.getElementById('quiz-mode-label').textContent = modeLabel(quizState.mode);
+  document.getElementById('progress-fill').style.width = (idx/total*100)+'%';
+  document.getElementById('q-num').textContent = `第${idx+1}問 ▸ ${q.year || ''} ${q.category || ''}`;
+  document.getElementById('q-text').textContent = q.text;
+
+  const imgEl = document.getElementById('q-img');
+  if (q.image) { imgEl.src = q.image; imgEl.style.display='block'; }
+  else { imgEl.style.display='none'; }
+
+  const container = document.getElementById('choices-container');
+  const labels = ['①','②','③','④','⑤'];
+  container.innerHTML = q.choices.map((c,i) => `
+    <button class="choice-btn" onclick="selectAnswer(${i})">
+      <span class="choice-label">${labels[i]}</span>
+      <span>${c}</span>
+    </button>
+  `).join('');
+
+  document.getElementById('answer-feedback').style.display='none';
+  document.getElementById('next-btn-wrap').style.display='none';
+}
+
+function selectAnswer(idx) {
+  const q = quizState.questions[quizState.current];
+  const correct = (idx === q.answer);
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach((b,i) => {
+    b.onclick = null;
+    if (i === q.answer) b.classList.add('correct');
+    else if (i === idx && !correct) b.classList.add('wrong');
+  });
+  btns[idx].classList.add('selected');
+
+  // history
+  if (!DB.history[q.id]) DB.history[q.id] = { correct:0, wrong:0 };
+  if (correct) DB.history[q.id].correct++; else DB.history[q.id].wrong++;
+  DB.history[q.id].lastAnswered = Date.now();
+  saveDB();
+
+  quizState.answers.push({ qid: q.id, correct, chosen: idx, answer: q.answer });
+
+  const fb = document.getElementById('answer-feedback');
+  fb.style.display = 'block';
+  if (correct) {
+    fb.className = 'answer-feedback correct-ans';
+    document.getElementById('feedback-title').textContent = '✅ 正解！';
+  } else {
+    fb.className = 'answer-feedback wrong';
+    document.getElementById('feedback-title').textContent = '❌ 不正解';
+  }
+  const expl = q.explanation || (correct ? '正解です！' : `正解は ${['①','②','③','④','⑤'][q.answer]} です。`);
+  document.getElementById('feedback-body').textContent = expl;
+
+  const nextWrap = document.getElementById('next-btn-wrap');
+  nextWrap.style.display='block';
+  const nextBtn = document.getElementById('next-btn');
+  const isLast = quizState.current === quizState.questions.length - 1;
+  nextBtn.textContent = isLast ? '結果を見る ✓' : '次の問題 →';
+  nextBtn.onclick = isLast ? showResult : nextQuestion;
+}
+
+function nextQuestion() {
+  quizState.current++;
+  renderQuestion();
+}
+
+function modeLabel(m) {
+  return {select:'年度別',random:'ランダム',review:'復習',weak:'苦手集中'}[m]||'';
+}
+
+// ===== RESULT =====
+function showResult() {
+  showScreen('result-screen');
+  const ans = quizState.answers;
+  const correct = ans.filter(a=>a.correct).length;
+  const total = ans.length;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  document.getElementById('res-pct').textContent = pct+'%';
+  document.getElementById('res-score').textContent = `${correct} / ${total} 正解`;
+  document.getElementById('res-mode').textContent = modeLabel(quizState.mode)+'モード';
+
+  // detail
+  const qs = quizState.questions;
+  const labels = ['①','②','③','④','⑤'];
+  document.getElementById('result-detail').innerHTML = ans.map((a,i) => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start">
+      <span style="color:${a.correct?'var(--green)':'var(--red)'};font-size:18px;flex-shrink:0">${a.correct?'✅':'❌'}</span>
+      <div>
+        <div style="font-size:12px;color:var(--steel-light);line-height:1.5">${qs[i].text.slice(0,60)}${qs[i].text.length>60?'…':''}</div>
+        ${!a.correct?`<div style="font-size:11px;color:var(--red);margin-top:3px">あなた: ${labels[a.chosen]} → 正解: ${labels[a.answer]}</div>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function retryMistakes() {
+  const wrongAns = quizState.answers.filter(a=>!a.correct);
+  if (wrongAns.length === 0) { showToast('間違いはありませんでした！'); return; }
+  const wrongIds = new Set(wrongAns.map(a=>a.qid));
+  const qs = quizState.questions.filter(q=>wrongIds.has(q.id));
+  startQuiz(shuffle(qs), 'review');
+}
+
+function goHome() {
+  switchTab(document.querySelector('[data-screen="home-screen"]'), 'home-screen');
+}
+
+// ===== STATS =====
+function renderStats() {
+  const all = getAllQuestions();
+  const hist = DB.history;
+  let totalAns=0, totalCorrect=0, streak=0, wrongCount=0;
+  for (const h of Object.values(hist)) {
+    totalAns += h.correct+h.wrong;
+    totalCorrect += h.correct;
+    if (h.wrong > 0) wrongCount++;
+  }
+  document.getElementById('st-total').textContent = totalAns;
+  document.getElementById('st-rate').textContent = totalAns>0 ? Math.round(totalCorrect/totalAns*100)+'%' : '—';
+  document.getElementById('st-wrong').textContent = wrongCount;
+
+  // category chart
+  const cats = ['機械系','電気系','設備診断'];
+  const catChart = document.getElementById('category-chart');
+  catChart.innerHTML = cats.map(cat => {
+    const qs = all.filter(q=>q.category.includes(cat));
+    let c=0,t=0;
+    qs.forEach(q=>{ const h=hist[q.id]; if(h){c+=h.correct;t+=h.correct+h.wrong;} });
+    const pct = t>0 ? Math.round(c/t*100) : 0;
+    return barRow(cat, pct, t);
+  }).join('');
+
+  // year chart
+  const years = [...new Set(DB.datasets.map(d=>d.year))].sort().reverse();
+  const yearChart = document.getElementById('year-chart');
+  yearChart.innerHTML = years.map(year => {
+    const qs = all.filter(q=>q.year===year);
+    let c=0,t=0;
+    qs.forEach(q=>{ const h=hist[q.id]; if(h){c+=h.correct;t+=h.correct+h.wrong;} });
+    const pct = t>0 ? Math.round(c/t*100) : 0;
+    return barRow(year, pct, t);
+  }).join('') || '<div class="text-muted">データなし</div>';
+
+  // weak list
+  const weakList = all
+    .filter(q=>hist[q.id] && hist[q.id].wrong>0)
+    .sort((a,b)=>{
+      const ra=hist[a.id], rb=hist[b.id];
+      return (rb.wrong/(rb.correct+rb.wrong)) - (ra.wrong/(ra.correct+ra.wrong));
+    }).slice(0,5);
+  document.getElementById('weak-list').innerHTML = weakList.length ? weakList.map(q => {
+    const h = hist[q.id];
+    const pct = Math.round(h.wrong/(h.correct+h.wrong)*100);
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--steel-light);line-height:1.4">${q.text.slice(0,60)}…</div>
+      <div style="font-size:11px;color:var(--red);margin-top:3px">誤答率 ${pct}% (${h.wrong}/${h.correct+h.wrong}回)</div>
+    </div>`;
+  }).join('') : '<div class="text-muted">間違い問題なし 🎉</div>';
+}
+
+function barRow(label, pct, count) {
+  const color = pct >= 70 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--red)';
+  return `<div class="bar-row">
+    <div class="bar-row-label">${label}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    <div class="bar-pct">${count>0?pct+'%':'—'}</div>
+  </div>`;
+}
+
+// ===== FILTER CHIPS =====
+function selectChip(el, type) {
+  el.closest('.chip-group').querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  filterState[type] = el.dataset.val;
+  updateFilteredCount();
+}
+function selectCountChip(el) {
+  el.closest('.chip-group').querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  filterState.count = el.dataset.val === 'all' ? 'all' : parseInt(el.dataset.val);
+  updateFilteredCount();
+}
+function updateYearChips() {
+  const years = [...new Set(DB.datasets.map(d=>d.year))].sort().reverse();
+  const container = document.getElementById('year-chips');
+  const existing = container.innerHTML;
+  container.innerHTML = `<div class="chip selected" data-val="all" onclick="selectChip(this,'year')">すべて</div>`;
+  years.forEach(y => {
+    container.innerHTML += `<div class="chip" data-val="${y}" onclick="selectChip(this,'year')">${y}</div>`;
+  });
+}
+function updateFilteredCount() {
+  let qs = getAllQuestions();
+  if (filterState.category !== 'all') qs = qs.filter(q=>q.category.includes(filterState.category));
+  if (filterState.year !== 'all') qs = qs.filter(q=>q.year===filterState.year);
+  const n = filterState.count === 'all' ? qs.length : Math.min(qs.length, filterState.count);
+  document.getElementById('filtered-count').textContent = `対象：${qs.length}問中 ${n}問を出題`;
+}
+
+// ===== AI EXTRACTION =====
+async function extractWithAI(contentBlocks, year, category) {
+  const apiKey = DB.settings.apiKey;
+  if (!apiKey) { showToast('APIキーを設定してください'); return null; }
+
+  const systemPrompt = `あなたは保全技能検定の過去問PDFまたは画像から問題を抽出するアシスタントです。
+問題、選択肢、正解番号（0始まりのインデックス）、解説を抽出し、必ず以下のJSON形式のみで返してください。
+余計な文章やマークダウンは一切不要です。
+
+{
+  "questions": [
+    {
+      "text": "問題文",
+      "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
+      "answer": 0,
+      "explanation": "解説（わかる範囲で）"
+    }
+  ]
+}
+
+注意：
+- answerは0から始まるインデックス（正解が2番目なら1）
+- 選択肢が○×の二択問題は choices: ["○", "×"] とする
+- 図や表の問題は text に「（図参照）」と記載する
+- 読み取れない問題は含めない`;
+
+  const userContent = [
+    ...contentBlocks,
+    { type: 'text', text: `この${year} ${category}の試験問題を上記JSON形式で抽出してください。` }
+  ];
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 8000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userContent }]
+    })
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json();
+    throw new Error(err.error?.message || 'API error');
+  }
+  const data = await resp.json();
+  const text = data.content.filter(c=>c.type==='text').map(c=>c.text).join('');
+  const clean = text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+// ===== PDF HANDLER =====
+async function handlePdfFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  await processFile(file, 'pdf');
+}
+async function handleImageFile(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  input.value = '';
+  await processFile(files, 'image');
+}
+
+async function processFile(fileOrFiles, type) {
+  const year = document.getElementById('meta-year').value;
+  const category = document.getElementById('meta-category').value;
+  if (!year || !category) { showToast('年度と作業区分を先に選択してください'); return; }
+
+  showProcessing(true, 'ファイルを読み込み中...');
+
+  try {
+    let contentBlocks = [];
+
+    if (type === 'pdf') {
+      const base64 = await fileToBase64(fileOrFiles);
+      contentBlocks = [{
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: base64.split(',')[1] }
+      }];
+      showProcessing(true, 'AIが問題を解析中...', 'PDFを読み取っています（数十秒かかる場合があります）');
+    } else {
+      const files = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
+      for (const f of files) {
+        const b64 = await fileToBase64(f);
+        const mime = f.type || 'image/jpeg';
+        contentBlocks.push({
+          type: 'image',
+          source: { type: 'base64', media_type: mime, data: b64.split(',')[1] }
+        });
+      }
+      showProcessing(true, 'AIが問題を解析中...', `${files.length}枚の画像を読み取っています`);
+    }
+
+    const result = await extractWithAI(contentBlocks, year, category);
+    showProcessing(false);
+
+    if (!result || !result.questions || result.questions.length === 0) {
+      showToast('問題を抽出できませんでした。別の画像をお試しください。');
+      return;
+    }
+
+    extractedData = { year, category, questions: result.questions };
+    showPreview(result.questions, year, category);
+
+  } catch(e) {
+    showProcessing(false);
+    console.error(e);
+    showToast('エラー: ' + e.message);
+  }
+}
+
+function showProcessing(show, msg='', sub='') {
+  const el = document.getElementById('processing-box');
+  el.style.display = show ? 'block' : 'none';
+  if (msg) document.getElementById('processing-msg').textContent = msg;
+  document.getElementById('processing-sub').textContent = sub;
+}
+
+function showPreview(questions, year, category) {
+  const preview = document.getElementById('extracted-preview');
+  preview.style.display = 'block';
+  const content = document.getElementById('preview-content');
+  const shown = questions.slice(0, 3);
+  const labels = ['①','②','③','④','⑤'];
+  content.innerHTML = `
+    <div class="text-muted" style="margin-bottom:10px">抽出問題数: <strong style="color:var(--orange)">${questions.length}問</strong> (${year} ${category})</div>
+    ${shown.map((q,i) => `
+      <div class="preview-q">
+        <strong>Q${i+1}.</strong> ${q.text.slice(0,80)}${q.text.length>80?'…':''}<br>
+        <span style="color:var(--green)">正解: ${labels[q.answer]}</span>
+      </div>
+    `).join('')}
+    ${questions.length > 3 ? `<div class="text-muted" style="font-size:11px;text-align:center">他 ${questions.length-3}問...</div>` : ''}
+  `;
+}
+
+function cancelExtracted() {
+  extractedData = null;
+  document.getElementById('extracted-preview').style.display='none';
+}
+
+function saveExtracted() {
+  if (!extractedData) return;
+  const { year, category, questions } = extractedData;
+
+  // 既存データセットの確認
+  const existIdx = DB.datasets.findIndex(d=>d.year===year && d.category===category);
+  const dsId = `${year}_${category}`.replace(/\s/g,'_');
+  const qs = questions.map((q,i)=>({
+    id: `${dsId}_q${Date.now()}_${i}`,
+    text: q.text,
+    choices: q.choices,
+    answer: q.answer,
+    explanation: q.explanation || ''
+  }));
+
+  if (existIdx >= 0) {
+    // 既存に追加（重複は除く）
+    DB.datasets[existIdx].questions.push(...qs);
+  } else {
+    DB.datasets.push({ id: dsId, year, category, questions: qs });
+  }
+
+  saveDB();
+  extractedData = null;
+  document.getElementById('extracted-preview').style.display='none';
+  showToast(`✅ ${qs.length}問を保存しました`);
+  renderImportDbList();
+  updateYearChips();
+  renderHomePage();
+}
+
+// ===== JSON IMPORT / EXPORT =====
+function exportJSON() {
+  if (DB.datasets.length === 0) { showToast('データがありません'); return; }
+  const json = JSON.stringify({ datasets: DB.datasets }, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `hoken_kakomon_${Date.now()}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('JSONをエクスポートしました');
+}
+
+function processImportedJSON(text) {
+  try {
+    const data = JSON.parse(text);
+    if (!data.datasets) throw new Error('形式が正しくありません（"datasets"キーが必要です）');
+    let added = 0;
+    for (const ds of data.datasets) {
+      const exist = DB.datasets.find(d=>d.id===ds.id);
+      if (exist) {
+        const existIds = new Set(exist.questions.map(q=>q.id));
+        const newQs = ds.questions.filter(q=>!existIds.has(q.id));
+        exist.questions.push(...newQs);
+        added += newQs.length;
+      } else {
+        DB.datasets.push(ds);
+        added += ds.questions.length;
+      }
+    }
+    saveDB();
+    renderImportDbList();
+    updateYearChips();
+    renderHomePage();
+    showToast(`✅ ${added}問をインポートしました`);
+    return added;
+  } catch(e) {
+    showToast('❌ エラー: ' + e.message);
+    return 0;
+  }
+}
+
+function importJSONFromText() {
+  const text = document.getElementById('json-paste-area').value.trim();
+  if (!text) { showToast('JSONを貼り付けてください'); return; }
+  const added = processImportedJSON(text);
+  if (added > 0) document.getElementById('json-paste-area').value = '';
+}
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const reader = new FileReader();
+  reader.onload = e => {
+    processImportedJSON(e.target.result);
+  };
+  reader.readAsText(file);
+}
+
+// ===== DB LIST =====
+function renderImportDbList() {
+  const el = document.getElementById('import-db-list');
+  if (DB.datasets.length === 0) {
+    el.innerHTML = '<div class="text-muted">まだデータがありません</div>';
+    document.getElementById('fig-edit-section').style.display = 'none';
+    return;
+  }
+  el.innerHTML = DB.datasets.map(ds => {
+    const figCount = ds.questions.filter(q=>q.image).length;
+    const hasFig = ds.questions.some(q=>q.text.includes('図参照') || q.has_figure);
+    return `
+    <div class="db-item">
+      <div class="db-info">
+        <div class="db-name">${ds.year} <span class="tag-chip ${categoryTag(ds.category)}">●</span> ${ds.category}</div>
+        <div class="db-meta">${ds.questions.length}問${hasFig ? ` / 🖼 スクショ${figCount}問追加済` : ''}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${hasFig ? `<button class="btn btn-secondary btn-sm" style="padding:6px 10px;font-size:11px" onclick="openFigEditor('${ds.id}')">🖼 図編集</button>` : ''}
+        <button class="db-del" onclick="deleteDataset('${ds.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteDataset(id) {
+  if (!confirm('このデータセットを削除しますか？')) return;
+  DB.datasets = DB.datasets.filter(d=>d.id!==id);
+  saveDB();
+  renderImportDbList();
+  updateYearChips();
+  renderHomePage();
+  showToast('削除しました');
+  document.getElementById('fig-edit-section').style.display = 'none';
+}
+
+// ===== 図付き問題編集 =====
+let figEditDsId = null;
+let figFilter = 'all';
+let figActiveQId = null;
+
+function openFigEditor(dsId) {
+  figEditDsId = dsId;
+  figFilter = 'all';
+  document.getElementById('fig-search').value = '';
+  // フィルターチップをリセット
+  document.querySelectorAll('#fig-filter-chips .chip').forEach((c,i) => {
+    c.classList.toggle('selected', i===0);
+  });
+  renderFigEditList();
+  document.getElementById('fig-edit-section').style.display = 'block';
+  document.getElementById('fig-edit-section').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function selectFigFilter(el, type) {
+  figFilter = type;
+  document.querySelectorAll('#fig-filter-chips .chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  renderFigEditList();
+}
+
+function renderFigEditList() {
+  const ds = DB.datasets.find(d=>d.id===figEditDsId);
+  if (!ds) return;
+  const search = document.getElementById('fig-search').value.toLowerCase();
+  const labels = ['①','②','③','④','⑤'];
+
+  const filtered = ds.questions.filter(q => {
+    if (search && !q.text.toLowerCase().includes(search)) return false;
+    if (figFilter === 'figure') return q.text.includes('図参照') || q.has_figure;
+    if (figFilter === 'has-img') return !!q.image;
+    if (figFilter === 'no-img') return !q.image;
+    return true;
+  });
+
+  const imgCount = ds.questions.filter(q=>q.image).length;
+  document.getElementById('fig-count-badge').textContent = imgCount;
+
+  const list = document.getElementById('fig-edit-list');
+  list.innerHTML = filtered.length === 0
+    ? '<div class="text-muted" style="text-align:center;padding:20px">該当なし</div>'
+    : filtered.map(q => {
+        const gi = ds.questions.indexOf(q);
+        const hasImg = !!q.image;
+        return `<div style="background:var(--navy-light);border-radius:10px;padding:12px 14px;border:1px solid ${hasImg?'var(--green)':'var(--border)'}">
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+            <span style="background:var(--navy-mid);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;color:var(--orange);flex-shrink:0;margin-top:2px">Q${gi+1}</span>
+            <div style="font-size:13px;color:var(--steel-light);line-height:1.5;flex:1">
+              ${esc(q.text.slice(0,80))}${q.text.length>80?'…':''}
+              ${(q.text.includes('図参照')||q.has_figure)?'<span style="background:var(--orange-glow);color:var(--orange);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px">図あり</span>':''}
+              ${hasImg?'<span style="background:rgba(58,184,122,.2);color:var(--green);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px">🖼 追加済</span>':''}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;border:${hasImg?'1.5px solid var(--green)':'1.5px dashed var(--border)'};background:${hasImg?'rgba(58,184,122,.1)':'var(--navy-mid)'};color:${hasImg?'var(--green)':'var(--steel-light)'};cursor:pointer"
+              onclick="triggerFigUploadApp('${figEditDsId}','${q.id}')">
+              ${hasImg?'🖼 スクショ変更':'📸 スクショを追加'}
+            </span>
+            ${hasImg?`<button onclick="removeFigApp('${figEditDsId}','${q.id}')" style="display:inline-flex;align-items:center;padding:7px 10px;border-radius:8px;font-size:12px;border:none;background:rgba(224,80,80,.15);color:var(--red);cursor:pointer">🗑 削除</button>`:''}
+          </div>
+          ${hasImg?`<img src="${q.image}" style="width:100%;border-radius:8px;margin-top:8px;max-height:160px;object-fit:contain;background:var(--navy-mid)">`:''}
+        </div>`;
+      }).join('');
+}
+
+function triggerFigUploadApp(dsId, qId) {
+  figActiveQId = qId;
+  figEditDsId = dsId;
+  const inp = document.getElementById('fig-file-input');
+  inp.value = '';
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    const b64 = await fileToBase64(f);
+    const ds = DB.datasets.find(d=>d.id===figEditDsId);
+    const q = ds?.questions.find(q=>q.id===figActiveQId);
+    if (q) {
+      q.image = b64;
+      saveDB();
+      renderFigEditList();
+      renderImportDbList();
+      showToast('✅ スクショを追加しました');
+    }
+  };
+  inp.click();
+}
+
+function removeFigApp(dsId, qId) {
+  const ds = DB.datasets.find(d=>d.id===dsId);
+  const q = ds?.questions.find(q=>q.id===qId);
+  if (q) {
+    q.image = null;
+    saveDB();
+    renderFigEditList();
+    renderImportDbList();
+    showToast('削除しました');
+  }
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ===== SETTINGS =====
+function confirmClearAll() {
+  if (!confirm('全データ（問題・履歴）をリセットします。よろしいですか？')) return;
+  DB.datasets = [];
+  DB.history = {};
+  saveDB();
+  renderHomePage();
+  renderImportDbList();
+  renderStats();
+  showToast('リセットしました');
+}
+
+// ===== DRAG & DROP =====
+function handleDrag(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function handleDrop(e, type) {
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  if (type === 'pdf') processFile(file, 'pdf');
+}
+
+// ===== UTIL =====
+function fileToBase64(file) {
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ===== BOOT =====
+init();
+</script>
+</body>
+</html>
