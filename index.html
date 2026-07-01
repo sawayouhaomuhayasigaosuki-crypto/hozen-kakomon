@@ -1618,6 +1618,10 @@ function esc(s) {
 // ===== 問題編集モーダル =====
 let editAnswerIdx = 0;
 
+function getLabels(choices) {
+  return ['①','②','③','④','⑤'].slice(0, choices.length);
+}
+
 function openEditModal() {
   const q = quizState.questions[quizState.current];
   if (!q) return;
