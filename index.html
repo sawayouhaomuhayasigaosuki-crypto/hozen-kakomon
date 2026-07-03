@@ -624,6 +624,24 @@
     </div>
 
     <div style="margin-bottom:12px">
+      <div style="font-size:11px;color:var(--steel);margin-bottom:6px;font-weight:700">🖼 問題の画像（図・表など）</div>
+      <div id="edit-img-preview-wrap" style="display:none;margin-bottom:8px">
+        <img id="edit-img-preview" src="" style="width:100%;border-radius:8px;max-height:200px;object-fit:contain;background:var(--navy);border:1px solid var(--green)">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="document.getElementById('edit-img-input').click()" id="edit-img-add-btn"
+          style="flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;border:1.5px dashed var(--border);background:var(--navy);color:var(--steel-light);cursor:pointer">
+          📸 画像を追加
+        </button>
+        <button onclick="removeEditImage()" id="edit-img-remove-btn"
+          style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;border:none;background:rgba(224,80,80,.15);color:var(--red);cursor:pointer">
+          🗑 削除
+        </button>
+      </div>
+      <input type="file" id="edit-img-input" accept="image/*" style="display:none">
+    </div>
+
+    <div style="margin-bottom:12px">
       <div style="font-size:11px;color:var(--steel);margin-bottom:6px;font-weight:700">選択肢</div>
       <div id="edit-choices" style="display:flex;flex-direction:column;gap:6px"></div>
     </div>
@@ -1617,9 +1635,12 @@ function esc(s) {
 
 // ===== 問題編集モーダル =====
 let editAnswerIdx = 0;
+let editImageData = undefined; // undefined=変更なし, null=削除, string=新画像
 
 function getLabels(choices) {
-  return ['①','②','③','④','⑤'].slice(0, choices.length);
+  // ○×問題かどうか判定
+  if (choices.length === 2 && choices[0] === '○') return ['○','×'];
+  return ['ア','イ','ウ','エ','オ'].slice(0, choices.length);
 }
 
 function openEditModal() {
@@ -1628,9 +1649,24 @@ function openEditModal() {
   const choices = Array.isArray(q.choices) ? q.choices : [];
   const labels = getLabels(choices);
   editAnswerIdx = q.answer;
+  editImageData = undefined;
 
   document.getElementById('edit-text').value = q.text || '';
   document.getElementById('edit-explanation').value = q.explanation || '';
+
+  // 画像プレビュー初期化
+  updateEditImagePreview(q.image || null);
+
+  // 画像選択のイベント設定
+  const imgInput = document.getElementById('edit-img-input');
+  imgInput.value = '';
+  imgInput.onchange = async () => {
+    const f = imgInput.files[0];
+    if (!f) return;
+    const b64 = await fileToBase64(f);
+    editImageData = b64;
+    updateEditImagePreview(b64);
+  };
 
   // 選択肢フィールド
   document.getElementById('edit-choices').innerHTML = choices.map((c, i) =>
@@ -1651,6 +1687,29 @@ function openEditModal() {
 
   document.getElementById('edit-modal').style.display = 'block';
   document.body.style.overflow = 'hidden';
+}
+
+function updateEditImagePreview(imgSrc) {
+  const wrap = document.getElementById('edit-img-preview-wrap');
+  const img = document.getElementById('edit-img-preview');
+  const addBtn = document.getElementById('edit-img-add-btn');
+  const removeBtn = document.getElementById('edit-img-remove-btn');
+  if (imgSrc) {
+    img.src = imgSrc;
+    wrap.style.display = 'block';
+    addBtn.textContent = '🖼 画像を変更';
+    removeBtn.style.display = 'block';
+  } else {
+    img.src = '';
+    wrap.style.display = 'none';
+    addBtn.textContent = '📸 画像を追加';
+    removeBtn.style.display = 'none';
+  }
+}
+
+function removeEditImage() {
+  editImageData = null;
+  updateEditImagePreview(null);
 }
 
 function setEditAnswer(idx) {
@@ -1697,14 +1756,22 @@ function saveEditModal() {
       orig.choices = q.choices;
       orig.answer = q.answer;
       orig.explanation = q.explanation;
+      // 画像の更新（undefined=変更なし）
+      if (editImageData !== undefined) {
+        orig.image = editImageData;
+        q.image = editImageData;
+      }
       break;
     }
   }
   saveDB();
   closeEditModal();
 
-  // 画面を再描画（回答済みなら正解表示を維持）
+  // 画面を再描画
   document.getElementById('q-text').textContent = q.text;
+  const imgEl = document.getElementById('q-img');
+  if (q.image) { imgEl.src = q.image; imgEl.style.display='block'; }
+  else { imgEl.style.display='none'; }
   showToast('✅ 保存しました');
 }
 
