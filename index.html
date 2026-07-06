@@ -904,6 +904,7 @@ function init() {
   renderStats();
   updateYearChips();
   updateFilteredCount();
+  migrateCompressImages(); // 既存の大きい画像を自動圧縮
 }
 
 // ===== STORAGE =====
@@ -914,7 +915,14 @@ function loadDB() {
   }
 }
 function saveDB() {
-  localStorage.setItem('hoken_db', JSON.stringify(DB));
+  try {
+    localStorage.setItem('hoken_db', JSON.stringify(DB));
+    return true;
+  } catch (e) {
+    console.error('saveDB failed:', e);
+    showToast('⚠️ 保存容量オーバー：画像が大きすぎます。画像を削除するか撮り直してください');
+    return false;
+  }
 }
 function loadApiKey() {
   const k = localStorage.getItem('hoken_apikey') || '';
@@ -1603,7 +1611,7 @@ function triggerFigUploadApp(dsId, qId) {
   inp.value = '';
   inp.onchange = async () => {
     const f = inp.files[0]; if (!f) return;
-    const b64 = await fileToBase64(f);
+    const b64 = await fileToCompressedBase64(f);
     const ds = DB.datasets.find(d=>d.id===figEditDsId);
     const q = ds?.questions.find(q=>q.id===figActiveQId);
     if (q) {
@@ -1663,7 +1671,7 @@ function openEditModal() {
   imgInput.onchange = async () => {
     const f = imgInput.files[0];
     if (!f) return;
-    const b64 = await fileToBase64(f);
+    const b64 = await fileToCompressedBase64(f);
     editImageData = b64;
     updateEditImagePreview(b64);
   };
@@ -1804,6 +1812,49 @@ function fileToBase64(file) {
     r.onerror = rej;
     r.readAsDataURL(file);
   });
+}
+// dataURLをcanvasで縮小・JPEG圧縮（localStorage容量対策）
+function compressDataUrl(dataUrl, maxDim = 1000, quality = 0.72) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        let w = img.naturalWidth, h = img.naturalHeight;
+        const scale = Math.min(1, maxDim / Math.max(w, h));
+        w = Math.max(1, Math.round(w * scale));
+        h = Math.max(1, Math.round(h * scale));
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        res(c.toDataURL('image/jpeg', quality));
+      } catch (e) { res(dataUrl); }
+    };
+    img.onerror = () => res(dataUrl);
+    img.src = dataUrl;
+  });
+}
+// 保存用画像は必ず圧縮してから使う
+async function fileToCompressedBase64(file) {
+  const raw = await fileToBase64(file);
+  return compressDataUrl(raw);
+}
+// 既存DB内の大きい画像を一括圧縮（初回起動時に自動実行）
+async function migrateCompressImages() {
+  let changed = false;
+  for (const ds of (DB.datasets || [])) {
+    for (const q of (ds.questions || [])) {
+      if (typeof q.image === 'string' && q.image.length > 150000) {
+        const c = await compressDataUrl(q.image);
+        if (c.length < q.image.length) { q.image = c; changed = true; }
+      }
+    }
+  }
+  if (changed && saveDB()) {
+    showToast('🗜 保存済み画像を圧縮して容量を確保しました');
+  }
 }
 function shuffle(arr) {
   const a = [...arr];
