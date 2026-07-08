@@ -1065,9 +1065,18 @@ function renderQuestion() {
   document.getElementById('quiz-mode-label').textContent = modeLabel(quizState.mode);
   document.getElementById('progress-fill').style.width = (idx/total*100)+'%';
   document.getElementById('q-num').textContent = `第${idx+1}問 ▸ ${q.year || ''} ${q.category || ''}`;
-  document.getElementById('q-text').textContent = q.text;
+  const qTextEl = document.getElementById('q-text');
+  const qText = (q.text || '').trim();
+  if (qText) {
+    qTextEl.textContent = qText;
+    qTextEl.style.color = '';
+  } else {
+    qTextEl.textContent = '⚠️ この問題は問題文が未登録です。右上の「✏️ 編集」から問題文を追加してください。';
+    qTextEl.style.color = 'var(--orange)';
+  }
 
   const imgEl = document.getElementById('q-img');
+  imgEl.onerror = () => { imgEl.style.display = 'none'; };
   if (q.image) { imgEl.src = q.image; imgEl.style.display='block'; }
   else { imgEl.style.display='none'; }
 
@@ -1434,7 +1443,12 @@ function saveExtracted() {
   saveDB();
   extractedData = null;
   document.getElementById('extracted-preview').style.display='none';
-  showToast(`✅ ${qs.length}問を保存しました`);
+  const emptyCount = qs.filter(q => !(q.text || '').trim()).length;
+  if (emptyCount > 0) {
+    showToast(`✅ ${qs.length}問を保存（⚠️ 問題文が空: ${emptyCount}問 → 編集で追加要）`);
+  } else {
+    showToast(`✅ ${qs.length}問を保存しました`);
+  }
   renderImportDbList();
   updateYearChips();
   renderHomePage();
