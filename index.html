@@ -1225,7 +1225,7 @@ function renderStats() {
     const h = hist[q.id];
     const pct = Math.round(h.wrong/(h.correct+h.wrong)*100);
     return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
-      <div style="font-size:12px;color:var(--steel-light);line-height:1.4">${q.text.slice(0,60)}…</div>
+      <div style="font-size:12px;color:var(--steel-light);line-height:1.4">${(q.text||'').slice(0,60)}…</div>
       <div style="font-size:11px;color:var(--red);margin-top:3px">誤答率 ${pct}% (${h.wrong}/${h.correct+h.wrong}回)</div>
     </div>`;
   }).join('') : '<div class="text-muted">間違い問題なし 🎉</div>';
@@ -1405,7 +1405,7 @@ function showPreview(questions, year, category) {
     <div class="text-muted" style="margin-bottom:10px">抽出問題数: <strong style="color:var(--orange)">${questions.length}問</strong> (${year} ${category})</div>
     ${shown.map((q,i) => `
       <div class="preview-q">
-        <strong>Q${i+1}.</strong> ${q.text.slice(0,80)}${q.text.length>80?'…':''}<br>
+        <strong>Q${i+1}.</strong> ${(q.text||'').slice(0,80)}${(q.text||'').length>80?'…':''}<br>
         <span style="color:var(--green)">正解: ${labels[q.answer]}</span>
       </div>
     `).join('')}
@@ -1523,7 +1523,7 @@ function renderImportDbList() {
   }
   el.innerHTML = DB.datasets.map(ds => {
     const figCount = ds.questions.filter(q=>q.image).length;
-    const hasFig = ds.questions.some(q=>q.text.includes('図参照') || q.has_figure);
+    const hasFig = ds.questions.some(q=>(q.text||'').includes('図参照') || q.has_figure);
     return `
     <div class="db-item">
       <div class="db-info">
@@ -1581,7 +1581,7 @@ function renderFigEditList() {
   const labels = ['①','②','③','④','⑤'];
 
   const filtered = ds.questions.filter(q => {
-    if (search && !q.text.toLowerCase().includes(search)) return false;
+    if (search && !(q.text||'').toLowerCase().includes(search)) return false;
     if (figFilter === 'figure') return q.text.includes('図参照') || q.has_figure;
     if (figFilter === 'has-img') return !!q.image;
     if (figFilter === 'no-img') return !q.image;
@@ -1601,8 +1601,8 @@ function renderFigEditList() {
           <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
             <span style="background:var(--navy-mid);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;color:var(--orange);flex-shrink:0;margin-top:2px">Q${gi+1}</span>
             <div style="font-size:13px;color:var(--steel-light);line-height:1.5;flex:1">
-              ${esc(q.text.slice(0,80))}${q.text.length>80?'…':''}
-              ${(q.text.includes('図参照')||q.has_figure)?'<span style="background:var(--orange-glow);color:var(--orange);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px">図あり</span>':''}
+              ${esc((q.text||'').slice(0,80))}${(q.text||'').length>80?'…':''}
+              ${((q.text||'').includes('図参照')||q.has_figure)?'<span style="background:var(--orange-glow);color:var(--orange);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px">図あり</span>':''}
               ${hasImg?'<span style="background:rgba(58,184,122,.2);color:var(--green);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px">🖼 追加済</span>':''}
             </div>
           </div>
