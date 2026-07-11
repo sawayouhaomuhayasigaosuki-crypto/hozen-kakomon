@@ -843,14 +843,15 @@
 
   <!-- 図付き問題編集 -->
   <div class="card" id="fig-edit-section" style="display:none">
-    <div class="card-title">🖼 図付き問題にスクショを追加</div>
-    <div class="text-muted" style="font-size:11px;margin-bottom:12px">「（図参照）」と記載された問題にスクショを貼り付けできます</div>
+    <div class="card-title">📋 問題一覧・編集</div>
+    <div class="text-muted" style="font-size:11px;margin-bottom:12px">全問題の確認・編集、図のスクショ追加ができます。おかしい問題を見つけたらここで修正できます</div>
 
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="fig-filter-chips">
       <div class="chip selected" onclick="selectFigFilter(this,'all')">すべて</div>
       <div class="chip" onclick="selectFigFilter(this,'figure')">⚠️ 図あり</div>
       <div class="chip" onclick="selectFigFilter(this,'has-img')">🖼 追加済 <span id="fig-count-badge" style="background:rgba(58,184,122,.2);color:var(--green);border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:2px">0</span></div>
       <div class="chip" onclick="selectFigFilter(this,'no-img')">📄 未追加</div>
+      <div class="chip" onclick="selectFigFilter(this,'no-text')">⚠️ 問題文なし</div>
     </div>
 
     <input type="text" id="fig-search" placeholder="🔍 問題文で絞り込み..."
@@ -1531,7 +1532,7 @@ function renderImportDbList() {
         <div class="db-meta">${ds.questions.length}問${hasFig ? ` / 🖼 スクショ${figCount}問追加済` : ''}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center">
-        ${hasFig ? `<button class="btn btn-secondary btn-sm" style="padding:6px 10px;font-size:11px" onclick="openFigEditor('${ds.id}')">🖼 図編集</button>` : ''}
+        <button class="btn btn-secondary btn-sm" style="padding:6px 10px;font-size:11px" onclick="openFigEditor('${ds.id}')">📋 一覧・編集</button>
         <button class="db-del" onclick="deleteDataset('${ds.id}')">🗑</button>
       </div>
     </div>`;
@@ -1582,9 +1583,10 @@ function renderFigEditList() {
 
   const filtered = ds.questions.filter(q => {
     if (search && !(q.text||'').toLowerCase().includes(search)) return false;
-    if (figFilter === 'figure') return q.text.includes('図参照') || q.has_figure;
+    if (figFilter === 'figure') return (q.text||'').includes('図参照') || q.has_figure;
     if (figFilter === 'has-img') return !!q.image;
     if (figFilter === 'no-img') return !q.image;
+    if (figFilter === 'no-text') return !(q.text||'').trim();
     return true;
   });
 
@@ -1601,7 +1603,8 @@ function renderFigEditList() {
           <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
             <span style="background:var(--navy-mid);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;color:var(--orange);flex-shrink:0;margin-top:2px">Q${gi+1}</span>
             <div style="font-size:13px;color:var(--steel-light);line-height:1.5;flex:1">
-              ${esc((q.text||'').slice(0,80))}${(q.text||'').length>80?'…':''}
+              ${(q.text||'').trim() ? esc((q.text||'').slice(0,80))+((q.text||'').length>80?'…':'') : '<span style="color:var(--orange);font-weight:700">⚠️ 問題文が未登録</span>'}
+              <div style="font-size:11px;color:var(--steel);margin-top:4px">正解: ${q.choices && q.choices[q.answer]!==undefined ? esc(String(q.choices[q.answer]).slice(0,24)) : '<span style="color:var(--red)">未設定</span>'}</div>
               ${((q.text||'').includes('図参照')||q.has_figure)?'<span style="background:var(--orange-glow);color:var(--orange);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px">図あり</span>':''}
               ${hasImg?'<span style="background:rgba(58,184,122,.2);color:var(--green);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px">🖼 追加済</span>':''}
             </div>
@@ -1611,6 +1614,7 @@ function renderFigEditList() {
               onclick="triggerFigUploadApp('${figEditDsId}','${q.id}')">
               ${hasImg?'🖼 スクショ変更':'📸 スクショを追加'}
             </span>
+            <button onclick="openEditModalForQuestion('${figEditDsId}','${q.id}')" style="display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid var(--orange);background:var(--orange-glow);color:var(--orange);cursor:pointer">✏️ 編集</button>
             ${hasImg?`<button onclick="removeFigApp('${figEditDsId}','${q.id}')" style="display:inline-flex;align-items:center;padding:7px 10px;border-radius:8px;font-size:12px;border:none;background:rgba(224,80,80,.15);color:var(--red);cursor:pointer">🗑 削除</button>`:''}
           </div>
           ${hasImg?`<img src="${q.image}" style="width:100%;border-radius:8px;margin-top:8px;max-height:160px;object-fit:contain;background:var(--navy-mid)">`:''}
@@ -1665,9 +1669,27 @@ function getLabels(choices) {
   return ['ア','イ','ウ','エ','オ'].slice(0, choices.length);
 }
 
+let editTarget = null;
+let editOrigin = 'quiz';
+
 function openEditModal() {
   const q = quizState.questions[quizState.current];
   if (!q) return;
+  editTarget = q;
+  editOrigin = 'quiz';
+  openEditModalCore(q);
+}
+
+function openEditModalForQuestion(dsId, qId) {
+  const ds = DB.datasets.find(d=>d.id===dsId);
+  const q = ds ? ds.questions.find(x=>x.id===qId) : null;
+  if (!q) return;
+  editTarget = q;
+  editOrigin = 'list';
+  openEditModalCore(q);
+}
+
+function openEditModalCore(q) {
   const choices = Array.isArray(q.choices) ? q.choices : [];
   const labels = getLabels(choices);
   editAnswerIdx = q.answer;
@@ -1736,7 +1758,8 @@ function removeEditImage() {
 
 function setEditAnswer(idx) {
   editAnswerIdx = idx;
-  const q = quizState.questions[quizState.current];
+  const q = editTarget;
+  if (!q) return;
   const choices = Array.isArray(q.choices) ? q.choices : [];
   const labels = getLabels(choices);
   choices.forEach((_, i) => {
@@ -1755,7 +1778,7 @@ function closeEditModal() {
 }
 
 function saveEditModal() {
-  const q = quizState.questions[quizState.current];
+  const q = editTarget;
   if (!q) return;
 
   // 問題文・解説を更新
@@ -1789,11 +1812,19 @@ function saveEditModal() {
   saveDB();
   closeEditModal();
 
-  // 画面を再描画
-  document.getElementById('q-text').textContent = q.text;
-  const imgEl = document.getElementById('q-img');
-  if (q.image) { imgEl.src = q.image; imgEl.style.display='block'; }
-  else { imgEl.style.display='none'; }
+  if (editOrigin === 'quiz') {
+    // クイズ画面を再描画
+    const qTextEl = document.getElementById('q-text');
+    const t = (q.text || '').trim();
+    qTextEl.textContent = t || '⚠️ この問題は問題文が未登録です。';
+    qTextEl.style.color = t ? '' : 'var(--orange)';
+    const imgEl = document.getElementById('q-img');
+    if (q.image) { imgEl.src = q.image; imgEl.style.display='block'; }
+    else { imgEl.style.display='none'; }
+  } else {
+    renderFigEditList();
+    renderImportDbList();
+  }
   showToast('✅ 保存しました');
 }
 
